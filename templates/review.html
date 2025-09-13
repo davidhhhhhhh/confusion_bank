@@ -5,9 +5,35 @@
 {% block content %}
 <div class="container">
     <h2>Review Mode</h2>
-    <p>Select a course and topic to review your confusion points and practice with targeted questions.</p>
+    <p>Get personalized review questions based on your actual confusion points from conversations.</p>
 
-    <div id="review-selection">
+    <!-- Natural Language Request -->
+    <div id="natural-request-section" class="review-section">
+        <h3>🎯 Quick Review Request</h3>
+        <p>Tell us what you want to review in natural language:</p>
+
+        <div class="form-group">
+            <input type="text" id="natural-request" placeholder="e.g., 'I want to review neural networks' or 'help me with data mining concepts'" class="natural-input">
+            <button id="generate-natural-review" class="btn-primary">Generate Review</button>
+        </div>
+
+        <div class="examples">
+            <small>
+                <strong>Examples:</strong>
+                "I want to review deep learning", "Help me with neural networks", "Review data mining algorithms"
+            </small>
+        </div>
+    </div>
+
+    <div class="divider">
+        <span>OR</span>
+    </div>
+
+    <!-- Traditional Course/Topic Selection -->
+    <div id="traditional-selection" class="review-section">
+        <h3>📚 Browse by Course & Topic</h3>
+        <p>Select specific courses and topics that have confusion points:</p>
+
         <div class="form-group">
             <label for="course-select">Select Course:</label>
             <select id="course-select" name="course-select">
@@ -25,12 +51,27 @@
         <button id="start-review" class="btn-primary" disabled>Start Review</button>
     </div>
 
+    <!-- Review Content Display -->
     <div id="review-content" style="display: none;">
+        <div id="review-metadata">
+            <div class="review-info">
+                <h3 id="review-title"></h3>
+                <p id="review-summary" class="summary"></p>
+                <div id="review-stats" class="stats"></div>
+            </div>
+        </div>
+
         <div id="review-questions"></div>
+
         <div id="review-controls">
-            <button id="next-question" class="btn-secondary">Next Question</button>
+            <button id="prev-question" class="btn-secondary" disabled>Previous</button>
+            <span id="question-counter">Question 1 of 7</span>
+            <button id="next-question" class="btn-secondary">Next</button>
             <button id="end-review" class="btn-primary">End Review</button>
         </div>
     </div>
+
+    <!-- Status messages -->
+    <div id="review-status" class="status-message" style="display: none;"></div>
 </div>
 {% endblock %}

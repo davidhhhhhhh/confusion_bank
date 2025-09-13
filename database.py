@@ -152,8 +152,9 @@ def get_recent_sessions(limit: int = 10) -> List[str]:
     cursor = conn.cursor()
 
     cursor.execute('''
-    SELECT DISTINCT session_id
+    SELECT session_id
     FROM conversations
+    GROUP BY session_id
     ORDER BY MAX(created_at) DESC
     LIMIT ?
     ''', (limit,))

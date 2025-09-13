@@ -1,0 +1,15 @@
+Parse this natural language review request and map it to available courses:
+
+Available Courses:
+{course_info}
+
+User Request: "{natural_language}"
+
+Please respond in this JSON format:
+{{
+    "course_id": <course_id or null>,
+    "unit": "<unit name or null>",
+    "topics": ["<topic1>", "<topic2>"] or []
+}}
+
+Match as closely as possible to the available courses, units, and topics. If the request is too vague or doesn't match anything, return null values.

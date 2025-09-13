@@ -1,0 +1,27 @@
+Analyze this conversation session and identify:
+
+1. Which course this conversation relates to (if any)
+2. Which unit within that course
+3. Which specific topics are discussed
+4. Which conversation IDs show the student being confused or struggling
+
+Available Courses:
+{course_info}
+
+Conversation Session:
+{conversation_text}
+
+Please respond in this JSON format:
+{{
+    "course_id": <course_id or null if no clear match>,
+    "unit": "<unit name or null>",
+    "topics": ["<topic1>", "<topic2>"],
+    "confused_conversation_ids": [<list of conversation IDs where student seems confused>]
+}}
+
+Look for signs of confusion like:
+- Asking for clarification
+- Expressing uncertainty ("I don't understand", "I'm confused")
+- Asking the same question multiple ways
+- Incorrect assumptions or misunderstandings
+- Requesting examples or simpler explanations

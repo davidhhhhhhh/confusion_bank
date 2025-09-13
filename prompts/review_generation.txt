@@ -1,0 +1,22 @@
+Based on these conversation sessions where the student showed confusion, create targeted review questions to help them practice and reinforce their understanding.
+
+Context from confused conversations:
+{context_text}
+
+Generate 5-7 review questions that:
+1. Target the specific concepts the student was confused about
+2. Progress from basic understanding to application
+3. Include both conceptual and practical questions
+4. Help clarify common misconceptions
+
+Respond in this JSON format:
+{{
+    "summary": "Brief summary of main confusion points",
+    "questions": [
+        {{
+            "question": "Question text",
+            "type": "conceptual|practical|application",
+            "hint": "Optional hint if needed"
+        }}
+    ]
+}}
