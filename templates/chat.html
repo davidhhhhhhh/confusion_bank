@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Confusion Bank{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Chat with AI Assistant</h2>
+
+    <div id="chat-container">
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <form id="chat-form" class="chat-form">
+            <div class="chat-input-group">
+                <input type="text" id="chat-input" placeholder="Ask a question about your coursework..." required>
+                <button type="submit" class="btn-primary">Send</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="chat-status" class="status-message" style="display: none;"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Syllabus - Confusion Bank{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Upload Course Syllabus</h2>
+    <p>Upload your course syllabus PDF to get started with personalized learning assistance.</p>
+
+    <form id="upload-form" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="course-name">Course Name:</label>
+            <input type="text" id="course-name" name="course-name" required placeholder="e.g., CS 101 - Introduction to Computer Science">
+        </div>
+
+        <div class="form-group">
+            <label for="syllabus-file">Syllabus PDF:</label>
+            <input type="file" id="syllabus-file" name="syllabus-file" accept=".pdf" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Upload & Process</button>
+    </form>
+
+    <div id="upload-status" class="status-message" style="display: none;"></div>
+</div>
+{% endblock %}
