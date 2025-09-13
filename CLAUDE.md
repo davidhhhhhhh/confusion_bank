@@ -30,32 +30,31 @@ A web-based chatbot that helps students review questions based on syllabus-mappe
 ## Database Schema
 
 ```sql
--- Courses table
+-- Courses table - stores syllabus structure
 CREATE TABLE courses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    syllabus_content TEXT NOT NULL,
-    topics TEXT NOT NULL,  -- JSON array of topics
+    units TEXT NOT NULL,    -- JSON: [{"name": "Unit 1", "topics": ["topic1", "topic2"]}]
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Conversations table
+-- Conversations table - individual user-AI message pairs
 CREATE TABLE conversations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,  -- Groups related conversations
     user_message TEXT NOT NULL,
     ai_response TEXT NOT NULL,
-    course_topic TEXT,  -- Which syllabus topic this relates to
-    confusion_detected BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Confusion points table
+-- Confusion points table - analysis results per session
 CREATE TABLE confusion_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    conversation_id INTEGER REFERENCES conversations(id),
+    session_id TEXT NOT NULL,
     course_id INTEGER REFERENCES courses(id),
-    topic TEXT NOT NULL,
-    confusion_summary TEXT NOT NULL,
+    unit TEXT,
+    topics TEXT,  -- JSON array of identified topics
+    confused_conversation_ids TEXT,  -- JSON array of conversation IDs showing confusion
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -89,29 +88,27 @@ confusion_bank/
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract raw text from uploaded PDF"""
 
-def extract_topics_from_syllabus(syllabus_text: str) -> List[str]:
-    """Use LLM to extract course topics from syllabus"""
+def extract_course_structure(syllabus_text: str) -> Dict:
+    """Use LLM to extract course units and topics structure"""
 
-def save_course_to_db(course_name: str, syllabus_content: str, topics: List[str]):
-    """Save parsed course data to database"""
+def save_course_to_db(course_name: str, units_structure: Dict):
+    """Save parsed course structure to database"""
 ```
 
 ### 2. LLM Service Module (`llm_service.py`)
 ```python
-def chat_with_claude(user_message: str, conversation_history: List) -> str:
+def chat_with_claude(user_message: str) -> str:
     """Handle normal chat conversations"""
 
-def classify_conversation_topic(message: str, course_topics: List[str]) -> str:
-    """Classify which syllabus topic the conversation relates to"""
+def analyze_session_confusion(session_conversations: List[Dict], courses: List[Dict]) -> Dict:
+    """Analyze entire session for course/unit/topic classification and confusion detection
+    Returns: {course_id, unit, topics, confused_conversation_ids}"""
 
-def detect_confusion(conversation: str) -> bool:
-    """Detect if student seems confused in conversation"""
+def parse_review_request(natural_language: str, courses: List[Dict]) -> Dict:
+    """Parse natural language review request to course/unit/topics"""
 
-def generate_review_summary(confusion_points: List) -> str:
-    """Summarize confusion points for review"""
-
-def generate_review_questions(confusion_summary: str, topic: str) -> List[str]:
-    """Generate targeted review questions"""
+def generate_review_content(confusion_sessions: List[Dict]) -> Dict:
+    """Generate review questions based on confusion session contexts"""
 ```
 
 ### 3. Database Module (`database.py`)
@@ -119,17 +116,17 @@ def generate_review_questions(confusion_summary: str, topic: str) -> List[str]:
 def init_database():
     """Initialize SQLite database with tables"""
 
-def save_conversation(user_msg: str, ai_response: str, topic: str = None):
-    """Save conversation to database"""
+def save_conversation(session_id: str, user_msg: str, ai_response: str) -> int:
+    """Save conversation pair to database"""
 
-def get_conversations_by_topic(course_id: int, topic: str) -> List:
-    """Retrieve conversations for specific topic"""
+def get_session_conversations(session_id: str) -> List[Dict]:
+    """Get all conversations for a session"""
 
-def save_confusion_point(conversation_id: int, course_id: int, topic: str, summary: str):
-    """Save detected confusion point"""
+def save_confusion_analysis(session_id: str, course_id: int, unit: str, topics: List[str], confused_ids: List[int]):
+    """Save confusion analysis results"""
 
-def get_confusion_points(course_id: int, topic: str = None) -> List:
-    """Get confusion points for review generation"""
+def get_confusion_sessions(course_id: int = None, unit: str = None, topics: List[str] = None) -> List[str]:
+    """Get session IDs matching review criteria"""
 ```
 
 ### 4. Main Flask App (`app.py`)
@@ -199,11 +196,17 @@ def api_review(course_id, topic):
 - Automatic confusion detection
 - Conversation history storage
 
-### 3. Targeted Review Generation
-- Select course/topic for review
-- LLM summarizes past confusion points
-- Generate personalized review questions
-- Interactive Q&A session
+### 3. Session-Based Confusion Analysis
+- Group conversations into sessions (user-initiated + 30min timeout)
+- Analyze complete sessions for course/unit/topic classification
+- Identify specific conversations showing confusion
+- Store analysis results for review generation
+
+### 4. Natural Language Review System
+- Student requests review in natural language (e.g., "I want to review CS101 loops")
+- LLM maps request to course/unit/topics structure
+- Query confusion points to find relevant sessions
+- Generate review questions using full session context
 
 ## Environment Setup
 

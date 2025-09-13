@@ -5,18 +5,18 @@
 - [x] Set up virtual environment
 - [x] Install required packages (Flask, anthropic, PyPDF2, etc.)
 - [x] Create `.env` file with Anthropic API key
-- [ ] Initialize Git repository
+- [x] Initialize Git repository
 - [x] Create basic `app.py` with Flask setup
 - [x] Test Flask server runs successfully
 
 ## Module 2: Database Setup
-- [ ] Create `database.py` file
-- [ ] Design SQLite database schema
-- [ ] Implement `init_database()` function
-- [ ] Create tables: courses, conversations, confusion_points
-- [ ] Test database creation and connection
-- [ ] Implement basic CRUD functions
-- [ ] Test database operations with sample data
+- [x] Create `database.py` file
+- [x] Design SQLite database schema
+- [x] Implement `init_database()` function
+- [x] Create tables: courses, conversations, confusion_points
+- [x] Test database creation and connection
+- [x] Implement basic CRUD functions
+- [x] Test database operations with sample data
 
 ## Module 3: PDF Processing & Syllabus Upload
 - [ ] Create `pdf_processor.py` file
