@@ -20,7 +20,12 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 @app.route('/')
 def home():
-    """Landing page with course upload"""
+    """Landing page redirects to chat interface"""
+    return redirect(url_for('chat_interface'))
+
+@app.route('/upload')
+def upload_page():
+    """Course upload page"""
     return render_template('upload.html')
 
 @app.route('/upload', methods=['POST'])
@@ -90,8 +95,8 @@ def api_chat():
                 'message': 'Session ID is required'
             })
 
-        # Get AI response
-        ai_response = chat_with_claude(user_message)
+        # Get AI response with session context
+        ai_response = chat_with_claude(user_message, session_id)
 
         # Save conversation to database
         conversation_id = save_conversation(session_id, user_message, ai_response)

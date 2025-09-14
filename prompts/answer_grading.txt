@@ -43,8 +43,7 @@ Provide your evaluation as a JSON object with this exact structure:
   "feedback": {{
     "strengths": "You correctly identified the main concept and provided a clear explanation of the process.",
     "areas_for_improvement": "Consider including more specific examples to demonstrate your understanding.",
-    "suggestions": "Review the textbook section on this topic and try to relate it to real-world applications.",
-    "encouragement": "You're on the right track! Your understanding of the fundamentals is solid."
+    "suggestions": "Review the textbook section on this topic and try to relate it to real-world applications."
   }},
   "overall_assessment": "Shows good understanding with room for more detail"
 }}

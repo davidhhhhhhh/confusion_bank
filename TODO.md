@@ -100,23 +100,18 @@
 - [x] Add graceful fallbacks for LLM failures
 - [x] Implement proper logging
 
-## Module 11: Demo Preparation
+## Module 11: Final Polish & Improvements
 - [x] Create sample syllabus PDFs for demo
 - [x] Prepare sample conversation scenarios
 - [x] Test complete user flow end-to-end
-- [ ] Create demo script and talking points
-- [ ] Test app performance under demo conditions
-- [ ] Prepare backup plans for common demo issues
-- [ ] Document known limitations
-
-## Module 12: Final Testing & Deployment
-- [ ] Run comprehensive testing of all features
-- [ ] Fix any critical bugs discovered
-- [ ] Optimize database queries for demo
-- [ ] Test app on different devices/browsers
-- [ ] Prepare deployment environment
-- [ ] Create final demo data set
-- [ ] Run final rehearsal of demo flow
+- [x] Revise answer grading output mapping - map correctness percentages to different colors and remove encouragement part from feedback
+- [x] Make chat the default page and reorder navigation - chat first, then upload, then review
+- [x] Add background information during chat mode by including session history in Claude context window
+- [x] Fix review page UI - increase spacing for generate button and add auto-scroll to loading message
+- [x] Create README for Confusion Bank project
+- [ ] Incorporate MCP in review generation and answer grading process with visualizations (optional)
+- [ ] Run comprehensive testing of all features and fix any critical bugs
+- [ ] Create demo script and final rehearsal
 
 ---
 
@@ -136,11 +131,10 @@
 - Module 7: Review Backend ✅
 - Module 8: Review Interface ✅
 
-### Phase 4 (Hours 10-12): Polish & Demo ⏳
+### Phase 4 (Hours 10-12): Final Polish & Deployment ⏳
 - Module 9: Styling & UX ✅
 - Module 10: Error Handling ✅
-- Module 11: Demo Prep ⏳ (3/7 tasks complete)
-- Module 12: Final Testing ⏳ (0/7 tasks complete)
+- Module 11: Final Polish & Improvements ⏳ (3/9 tasks complete)
 
 ---
 

@@ -347,6 +347,14 @@ function handleNaturalLanguageReview() {
 
     showStatus('Processing your request and generating personalized review...', 'info');
 
+    // Auto-scroll to the status message at the bottom
+    setTimeout(() => {
+        const statusElement = document.getElementById('review-status');
+        if (statusElement) {
+            statusElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+
     fetch('/api/review-request', {
         method: 'POST',
         headers: {
@@ -379,6 +387,14 @@ function startTraditionalReview() {
     }
 
     showStatus('Generating personalized review questions...', 'info');
+
+    // Auto-scroll to the status message at the bottom
+    setTimeout(() => {
+        const statusElement = document.getElementById('review-status');
+        if (statusElement) {
+            statusElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
 
     fetch(`/api/review/${courseId}/${encodeURIComponent(topic)}`)
     .then(response => response.json())
@@ -581,11 +597,23 @@ function checkAnswer() {
 }
 
 function displayGradingResults(grading) {
+    // Determine score color based on percentage
+    let scoreColorClass = 'score-insufficient';
+    if (grading.score_percentage >= 90) {
+        scoreColorClass = 'score-excellent';
+    } else if (grading.score_percentage >= 75) {
+        scoreColorClass = 'score-good';
+    } else if (grading.score_percentage >= 60) {
+        scoreColorClass = 'score-fair';
+    } else if (grading.score_percentage >= 40) {
+        scoreColorClass = 'score-needs-improvement';
+    }
+
     // Create grading results display
     const gradingHTML = `
         <div class="grading-results">
             <div class="score-display">
-                <div class="score-circle">
+                <div class="score-circle ${scoreColorClass}">
                     <span class="score-percentage">${grading.score_percentage}%</span>
                     <span class="score-category">${grading.score_category}</span>
                 </div>
@@ -610,11 +638,6 @@ function displayGradingResults(grading) {
                     <p>${grading.feedback.suggestions}</p>
                 </div>
                 ` : ''}
-
-                <div class="feedback-section encouragement">
-                    <h4>🌟 Encouragement:</h4>
-                    <p>${grading.feedback.encouragement}</p>
-                </div>
             </div>
 
             <div class="overall-assessment">

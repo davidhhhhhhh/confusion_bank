@@ -10,18 +10,48 @@ load_dotenv()
 # Initialize Anthropic client
 client = anthropic.Anthropic()
 
-def chat_with_claude(user_message: str) -> str:
-    """Handle normal chat conversations with Claude"""
+def chat_with_claude(user_message: str, session_id: str = None) -> str:
+    """Handle normal chat conversations with Claude, including session history for context"""
     try:
+        # Build conversation history for context
+        messages = []
+
+        if session_id:
+            from database import get_session_conversations
+            # Get recent conversation history (limit to last 10 exchanges to manage token usage)
+            session_history = get_session_conversations(session_id)[-10:]
+
+            if session_history:
+                # Add system message with context instruction
+                system_context = "You are a helpful AI tutor. Below is our recent conversation history for context:"
+
+                # Add conversation history
+                history_text = ""
+                for conv in session_history:
+                    history_text += f"Student: {conv['user_message']}\nAI: {conv['ai_response']}\n\n"
+
+                # Add context as initial message
+                messages.append({
+                    "role": "user",
+                    "content": f"{system_context}\n\n--- Previous Conversation ---\n{history_text}--- Current Question ---\n{user_message}"
+                })
+            else:
+                # No history, just add the current message
+                messages.append({
+                    "role": "user",
+                    "content": user_message
+                })
+        else:
+            # No session ID provided, just respond to current message
+            messages.append({
+                "role": "user",
+                "content": user_message
+            })
+
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=4096,
-            messages=[
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ]
+            messages=messages
         )
 
         return response.content[0].text

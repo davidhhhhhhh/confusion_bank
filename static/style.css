@@ -334,9 +334,9 @@ textarea:focus {
 }
 
 .natural-input {
-    width: calc(100% - 140px);
-    margin-right: 0.5rem;
-    display: inline-block;
+    width: 100%;
+    margin-bottom: 1rem;
+    display: block;
 }
 
 .examples {
@@ -602,7 +602,6 @@ textarea:focus {
 
 .score-circle {
     display: inline-block;
-    background: linear-gradient(135deg, #28a745, #20c997);
     color: white;
     padding: 1.5rem;
     border-radius: 50%;
@@ -612,7 +611,33 @@ textarea:focus {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Score color classes based on percentage ranges */
+.score-circle.score-excellent {
+    background: linear-gradient(135deg, #28a745, #20c997);
     box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.score-circle.score-good {
+    background: linear-gradient(135deg, #17a2b8, #20c997);
+    box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}
+
+.score-circle.score-fair {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+.score-circle.score-needs-improvement {
+    background: linear-gradient(135deg, #fd7e14, #dc3545);
+    box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3);
+}
+
+.score-circle.score-insufficient {
+    background: linear-gradient(135deg, #dc3545, #6c757d);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 .score-percentage {
@@ -652,9 +677,6 @@ textarea:focus {
     border-left-color: #17a2b8;
 }
 
-.feedback-section.encouragement {
-    border-left-color: #6f42c1;
-}
 
 .feedback-section h4 {
     margin: 0 0 0.5rem 0;
