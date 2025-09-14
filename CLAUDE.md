@@ -6,9 +6,12 @@ A web-based chatbot that helps students review questions based on syllabus-mappe
 ## Tech Stack
 - **Backend**: Flask (Python)
 - **Database**: SQLite
-- **LLM**: Anthropic Claude API
+- **LLM**: Anthropic Claude API (increased token limits for full responses)
 - **PDF Processing**: PyPDF2
-- **Frontend**: HTML/CSS/JavaScript (no frameworks)
+- **Frontend**: HTML/CSS/JavaScript + Marked.js for markdown rendering
+- **UI Enhancement**: Rich markdown formatting in chat and reviews
+- **AI Grading**: Intelligent answer evaluation with structured feedback
+- **Session Management**: Browser-based session tracking with new session controls
 
 ## System Architecture
 
@@ -65,18 +68,21 @@ CREATE TABLE confusion_points (
 confusion_bank/
 ├── app.py              # Main Flask application
 ├── database.py         # Database setup and queries
-├── llm_service.py      # Anthropic API integration
+├── llm_service.py      # Anthropic API integration + grading system
 ├── pdf_processor.py    # PDF parsing and topic extraction
 ├── classifier.py       # Conversation topic classification
 ├── review_generator.py # Review questions generation
+├── prompts/            # LLM prompt templates
+│   ├── __init__.py     # Prompt loading utilities
+│   └── answer_grading.txt # AI grading evaluation template
 ├── templates/
 │   ├── base.html       # Base template
 │   ├── upload.html     # Syllabus upload page
-│   ├── chat.html       # Chat interface
-│   └── review.html     # Review mode interface
+│   ├── chat.html       # Chat interface with session controls
+│   └── review.html     # Review mode with analysis status
 ├── static/
-│   ├── style.css       # Basic styling
-│   └── script.js       # Frontend JavaScript
+│   ├── style.css       # Enhanced styling with grading UI
+│   └── script.js       # Frontend JavaScript with grading integration
 ├── requirements.txt    # Python dependencies
 └── README.md          # Project documentation
 ```
@@ -98,17 +104,23 @@ def save_course_to_db(course_name: str, units_structure: Dict):
 ### 2. LLM Service Module (`llm_service.py`)
 ```python
 def chat_with_claude(user_message: str) -> str:
-    """Handle normal chat conversations"""
+    """Handle normal chat conversations with Claude (4096 max tokens)"""
 
 def analyze_session_confusion(session_conversations: List[Dict], courses: List[Dict]) -> Dict:
     """Analyze entire session for course/unit/topic classification and confusion detection
-    Returns: {course_id, unit, topics, confused_conversation_ids}"""
+    Returns: {course_id, unit, topics, confused_conversation_ids} (2048 max tokens)"""
 
 def parse_review_request(natural_language: str, courses: List[Dict]) -> Dict:
-    """Parse natural language review request to course/unit/topics"""
+    """Parse natural language review request to course/unit/topics (1024 max tokens)"""
 
 def generate_review_content(confusion_sessions: List[Dict]) -> Dict:
-    """Generate review questions based on confusion session contexts"""
+    """Generate review questions based on confusion session contexts (4096 max tokens)"""
+
+def improve_course_structure_extraction(syllabus_text: str) -> List[Dict]:
+    """Extract course units and topics from syllabus (2048 max tokens)"""
+
+def grade_student_answer(question: str, question_type: str, student_answer: str, hint: str = None) -> Dict:
+    """Evaluate student answers using AI with structured feedback (2048 max tokens)"""
 ```
 
 ### 3. Database Module (`database.py`)
@@ -121,6 +133,9 @@ def save_conversation(session_id: str, user_msg: str, ai_response: str) -> int:
 
 def get_session_conversations(session_id: str) -> List[Dict]:
     """Get all conversations for a session"""
+
+def get_unanalyzed_sessions() -> List[str]:
+    """Get session IDs that have conversations but no confusion analysis"""
 
 def save_confusion_analysis(session_id: str, course_id: int, unit: str, topics: List[str], confused_ids: List[int]):
     """Save confusion analysis results"""
@@ -154,6 +169,18 @@ def review_mode():
 @app.route('/api/review/<course_id>/<topic>')
 def api_review(course_id, topic):
     """Generate and return review content"""
+
+@app.route('/admin/run-analysis')
+def admin_run_analysis():
+    """Trigger analysis of all unprocessed sessions"""
+
+@app.route('/api/grade-answer', methods=['POST'])
+def api_grade_answer():
+    """Grade student's answer to review question with AI feedback"""
+
+@app.route('/api/analysis-status')
+def api_analysis_status():
+    """Check if all conversations have been analyzed for review readiness"""
 ```
 
 ## Implementation Timeline (12 hours)
@@ -164,23 +191,26 @@ def api_review(course_id, topic):
 - Basic HTML templates and routing
 - PDF upload functionality with text extraction
 
-### Phase 2: Core Chat (Hours 4-6)
-- Anthropic API integration for chat
+### Phase 2: Enhanced Chat (Hours 4-6)
+- Anthropic API integration for chat (increased token limits)
+- Markdown rendering integration (Marked.js)
 - Conversation storage and retrieval
 - Basic topic classification
-- Real-time chat interface with AJAX
+- Real-time chat interface with AJAX and rich formatting
 
-### Phase 3: Review System (Hours 7-9)
-- Confusion point detection and storage
-- Review summary generation
-- Review question generation
-- Review interface implementation
+### Phase 3: Enhanced Review System (Hours 7-9)
+- User-triggered confusion analysis button
+- Confusion point detection and storage (2048 tokens)
+- Rich review summary generation with markdown
+- Comprehensive review question generation (4096 tokens)
+- Review interface with formatted content display
 
-### Phase 4: Polish (Hours 10-12)
-- UI improvements and styling
+### Phase 4: Polish & UX (Hours 10-12)
+- Enhanced UI styling with markdown support
+- CSS styling for code blocks, headers, and formatting
 - Error handling and validation
-- Testing with sample data
-- Demo preparation
+- Testing with sample data including formatted responses
+- Demo preparation with rich content examples
 
 ## Key Features
 
@@ -190,23 +220,41 @@ def api_review(course_id, topic):
 - Use LLM to identify course topics/modules
 - Store course structure in database
 
-### 2. Intelligent Chat Classification
-- Normal conversation flow with Claude
-- Background topic classification
-- Automatic confusion detection
-- Conversation history storage
+### 2. Enhanced Chat System with Session Management
+- Normal conversation flow with Claude (up to 4096 tokens)
+- Rich markdown rendering (headers, code blocks, lists, formatting)
+- Browser-based session tracking using sessionStorage
+- "New Session" button to start fresh conversations
+- Conversation history storage with session grouping
+- Manual analysis trigger for confusion detection
+- No automatic background processing
+- Smooth, formatted responses for better readability
 
-### 3. Session-Based Confusion Analysis
-- Group conversations into sessions (user-initiated + 30min timeout)
-- Analyze complete sessions for course/unit/topic classification
+### 3. User-Triggered Confusion Analysis
+- Store conversations with session IDs for grouping
+- User triggers analysis via "Analyze My Confusion Points" button
+- Analyze all unprocessed sessions for course/unit/topic classification
 - Identify specific conversations showing confusion
 - Store analysis results for review generation
 
-### 4. Natural Language Review System
+### 4. Enhanced Review System with AI Grading
+- **UI Improvements**: Analysis section prominently at top, side-by-side review options
+- **Smart Status Checking**: Analysis button shows when sessions need processing
+- **Dual Review Modes**: Natural language requests OR topic-based selection
 - Student requests review in natural language (e.g., "I want to review CS101 loops")
-- LLM maps request to course/unit/topics structure
+- LLM maps request to course/unit/topics structure (1024 tokens)
 - Query confusion points to find relevant sessions
-- Generate review questions using full session context
+- Generate comprehensive review questions using full session context (4096 tokens)
+- Rich markdown formatting in review summaries and questions
+- Support for code examples, math formulas, and structured content
+
+### 5. AI-Powered Answer Grading
+- **Intelligent Evaluation**: AI grades student answers with 5-tier scoring system
+- **Structured Feedback**: Strengths, improvement areas, specific suggestions, encouragement
+- **Educational Focus**: Constructive, supportive feedback designed for learning
+- **Professional UI**: Circular score display, detailed feedback sections
+- **Hint System**: Optional hints that remain hidden until requested
+- **Question Types**: Support for conceptual, coding, and calculation questions
 
 ## Environment Setup
 
@@ -228,16 +276,24 @@ FLASK_DEBUG=True
 
 ## Demo Flow
 1. **Upload**: Upload 2 sample course syllabi (CS101, MATH201)
-2. **Chat**: Have conversations about various course topics
-3. **Classification**: Show how conversations map to syllabus topics
-4. **Review**: Select a course/topic, see confusion summary, answer review questions
+2. **Chat**: Have conversations about various course topics across multiple sessions
+3. **Session Management**: Use "New Session" button to organize different conversation topics
+4. **Analysis**: Click "Analyze Past Content" to process all conversations (top of review page)
+5. **Review Selection**: Choose between natural language requests or topic-based selection
+6. **Interactive Learning**: Answer review questions and receive detailed AI-powered feedback
+7. **Iterative Improvement**: Use feedback suggestions to deepen understanding
 
 ## Success Metrics
-- ✅ Successfully parse PDF syllabi
+- ✅ Successfully parse PDF syllabi with improved extraction (2048 tokens)
 - ✅ Classify 80%+ of conversations to correct topics
-- ✅ Generate relevant review questions
-- ✅ Complete end-to-end user flow in demo
-- ✅ Responsive interface on mobile/desktop
+- ✅ Generate comprehensive, well-formatted review questions (4096 tokens)
+- ✅ AI grading system with structured educational feedback
+- ✅ Complete end-to-end user flow in demo with rich content
+- ✅ Responsive interface with markdown rendering on mobile/desktop
+- ✅ Enhanced UX with smooth formatted responses
+- ✅ Session management with new session functionality
+- ✅ Professional grading UI with detailed feedback display
+- ✅ Smart analysis status checking and user guidance
 
 ## Deployment
 For hackathon demo:

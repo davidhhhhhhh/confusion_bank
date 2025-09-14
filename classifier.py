@@ -1,64 +1,17 @@
-import time
-from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from database import (
     get_session_conversations,
     get_courses,
     save_confusion_analysis,
-    check_session_needs_analysis
+    get_unanalyzed_sessions
 )
 from llm_service import analyze_session_confusion
-
-# Session timeout in seconds (30 minutes)
-SESSION_TIMEOUT = 30 * 60
 
 class SessionClassifier:
     """Handles session analysis and confusion detection"""
 
     def __init__(self):
-        self.active_sessions = {}  # Track session activity
-
-    def update_session_activity(self, session_id: str):
-        """Update the last activity time for a session"""
-        self.active_sessions[session_id] = time.time()
-
-    def get_expired_sessions(self) -> List[str]:
-        """Get sessions that have expired (no activity for 30+ minutes)"""
-        current_time = time.time()
-        expired_sessions = []
-
-        for session_id, last_activity in self.active_sessions.items():
-            if current_time - last_activity >= SESSION_TIMEOUT:
-                expired_sessions.append(session_id)
-
-        return expired_sessions
-
-    def mark_session_analyzed(self, session_id: str):
-        """Remove session from active tracking after analysis"""
-        if session_id in self.active_sessions:
-            del self.active_sessions[session_id]
-
-    def analyze_expired_sessions(self):
-        """Analyze all expired sessions for confusion points"""
-        expired_sessions = self.get_expired_sessions()
-
-        for session_id in expired_sessions:
-            try:
-                # Check if this session needs analysis
-                if check_session_needs_analysis(session_id):
-                    print(f"Analyzing expired session: {session_id}")
-                    result = self.analyze_single_session(session_id)
-
-                    if result:
-                        print(f"Session {session_id} analyzed successfully")
-                    else:
-                        print(f"Session {session_id} analysis failed or returned no results")
-
-                # Mark as analyzed (remove from active tracking)
-                self.mark_session_analyzed(session_id)
-
-            except Exception as e:
-                print(f"Error analyzing session {session_id}: {str(e)}")
+        pass
 
     def analyze_single_session(self, session_id: str) -> bool:
         """Analyze a single session for course classification and confusion detection"""
@@ -135,19 +88,13 @@ class SessionClassifier:
         """Get status information about a session"""
         try:
             conversations = get_session_conversations(session_id)
-            is_active = session_id in self.active_sessions
+            from database import check_session_needs_analysis
             needs_analysis = check_session_needs_analysis(session_id) if conversations else False
-
-            last_activity = None
-            if is_active:
-                last_activity = datetime.fromtimestamp(self.active_sessions[session_id]).isoformat()
 
             return {
                 'session_id': session_id,
-                'is_active': is_active,
                 'conversation_count': len(conversations) if conversations else 0,
-                'needs_analysis': needs_analysis,
-                'last_activity': last_activity
+                'needs_analysis': needs_analysis
             }
 
         except Exception as e:
@@ -159,15 +106,36 @@ class SessionClassifier:
 # Global classifier instance
 classifier = SessionClassifier()
 
-def update_session_activity(session_id: str):
-    """Update session activity (called after each conversation)"""
-    classifier.update_session_activity(session_id)
 
 def run_periodic_analysis():
-    """Run periodic analysis of expired sessions"""
-    print("Running periodic session analysis...")
-    classifier.analyze_expired_sessions()
-    print("Periodic analysis complete")
+    """Run analysis of all unanalyzed sessions (user-triggered)"""
+    print("Running analysis of unanalyzed sessions...")
+
+    # Get all sessions that need analysis
+    unanalyzed_sessions = get_unanalyzed_sessions()
+    print(f"Found {len(unanalyzed_sessions)} sessions that need analysis")
+
+    analyzed_count = 0
+    failed_count = 0
+
+    for session_id in unanalyzed_sessions:
+        try:
+            print(f"Analyzing session: {session_id}")
+            result = classifier.analyze_single_session(session_id)
+
+            if result:
+                analyzed_count += 1
+                print(f"Session {session_id} analyzed successfully")
+            else:
+                failed_count += 1
+                print(f"Session {session_id} analysis failed or returned no results")
+
+        except Exception as e:
+            failed_count += 1
+            print(f"Error analyzing session {session_id}: {str(e)}")
+
+    print(f"Analysis complete - {analyzed_count} successful, {failed_count} failed")
+    return analyzed_count, failed_count
 
 def force_analyze_session(session_id: str) -> Dict:
     """Force analyze a specific session"""
@@ -181,8 +149,8 @@ if __name__ == '__main__':
     # Test the classifier
     print("Testing Session Classifier...")
 
-    # Create a test session for analysis
-    from database import save_conversation, get_recent_sessions
+    # Test the new unanalyzed sessions approach
+    from database import get_recent_sessions
 
     # Get a recent session to test with
     recent_sessions = get_recent_sessions(5)

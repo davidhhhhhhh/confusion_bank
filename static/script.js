@@ -43,7 +43,7 @@ function handleFileUpload(event) {
     .then(data => {
         if (data.status === 'success') {
             showStatus('Syllabus uploaded and processed successfully!', 'success');
-            uploadForm.reset();
+            event.target.reset(); // Use event.target to reference the form
             // Redirect to chat after successful upload
             setTimeout(() => {
                 window.location.href = '/chat';
@@ -62,9 +62,14 @@ function handleFileUpload(event) {
 function initChatPage() {
     const chatForm = document.getElementById('chat-form');
     const chatMessages = document.getElementById('chat-messages');
+    const newSessionBtn = document.getElementById('new-session-btn');
 
     if (chatForm) {
         chatForm.addEventListener('submit', handleChatMessage);
+    }
+
+    if (newSessionBtn) {
+        newSessionBtn.addEventListener('click', startNewSession);
     }
 
     // Generate or retrieve session ID
@@ -72,12 +77,51 @@ function initChatPage() {
         sessionStorage.setItem('chatSessionId', generateSessionId());
     }
 
+    // Update session display
+    updateSessionDisplay();
+
     // Add welcome message
     addMessage('Hello! I\'m here to help you with your coursework. Ask me anything!', 'ai');
 }
 
 function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+}
+
+function updateSessionDisplay() {
+    const sessionDisplay = document.getElementById('current-session-display');
+    const sessionId = sessionStorage.getItem('chatSessionId');
+
+    if (sessionDisplay && sessionId) {
+        // Show a shortened version of the session ID
+        const shortId = sessionId.substring(8, 16); // Take part of timestamp
+        sessionDisplay.textContent = `Session: ${shortId}`;
+    }
+}
+
+function startNewSession() {
+    if (confirm('Start a new conversation session? This will clear your current chat and create a fresh session for analysis.')) {
+        // Generate new session ID
+        const newSessionId = generateSessionId();
+        sessionStorage.setItem('chatSessionId', newSessionId);
+
+        // Clear chat messages
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.innerHTML = '';
+        }
+
+        // Update session display
+        updateSessionDisplay();
+
+        // Add welcome message for new session
+        addMessage('🔄 New session started! Ask me anything about your coursework.', 'ai');
+
+        // Show confirmation
+        const shortId = newSessionId.substring(8, 16);
+        showStatus(`New session created: ${shortId}`, 'success');
+        setTimeout(hideStatus, 3000);
+    }
 }
 
 function handleChatMessage(event) {
@@ -132,7 +176,13 @@ function addMessage(content, sender, messageType = '') {
 
     messageDiv.className = `message ${sender} ${messageType}`;
     messageDiv.id = `message-${messageId}`;
-    messageDiv.textContent = content;
+
+    // Render markdown for AI messages, plain text for user messages
+    if (sender === 'ai' && typeof marked !== 'undefined') {
+        messageDiv.innerHTML = marked.parse(content);
+    } else {
+        messageDiv.textContent = content;
+    }
 
     // Add timestamp for messages
     if (sender === 'user' || sender === 'ai') {
@@ -163,6 +213,9 @@ function initReviewPage() {
     const naturalRequestInput = document.getElementById('natural-request');
     const generateNaturalReviewBtn = document.getElementById('generate-natural-review');
 
+    // Check analysis status first
+    checkAnalysisStatus();
+
     // Initialize traditional course/topic selection
     if (courseSelect) {
         loadCourses();
@@ -188,6 +241,12 @@ function initReviewPage() {
 
     if (generateNaturalReviewBtn) {
         generateNaturalReviewBtn.addEventListener('click', handleNaturalLanguageReview);
+    }
+
+    // Initialize analysis functionality
+    const analyzeBtn = document.getElementById('analyze-confusion');
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', handleAnalysisRequest);
     }
 
     // Initialize review navigation
@@ -347,9 +406,14 @@ function displayReviewContent(content, metadata, title) {
     const reviewContent = document.getElementById('review-content');
     reviewContent.style.display = 'block';
 
-    // Set title and summary
+    // Set title and summary with markdown rendering
     document.getElementById('review-title').textContent = title;
-    document.getElementById('review-summary').textContent = content.summary;
+    const reviewSummaryEl = document.getElementById('review-summary');
+    if (typeof marked !== 'undefined' && content.summary) {
+        reviewSummaryEl.innerHTML = marked.parse(content.summary);
+    } else {
+        reviewSummaryEl.textContent = content.summary;
+    }
 
     // Set metadata stats
     const stats = document.getElementById('review-stats');
@@ -379,6 +443,10 @@ function displayCurrentQuestion() {
     const question = questions[index];
     const reviewQuestions = document.getElementById('review-questions');
 
+    // Create question HTML with markdown rendering
+    const questionHTML = typeof marked !== 'undefined' ? marked.parse(question.question) : question.question;
+    const hintHTML = question.hint && typeof marked !== 'undefined' ? marked.parse(question.hint) : question.hint;
+
     reviewQuestions.innerHTML = `
         <div class="question active">
             <div class="question-header">
@@ -386,12 +454,12 @@ function displayCurrentQuestion() {
                 <span class="question-type">${question.type}</span>
             </div>
             <div class="question-content">
-                <p class="question-text">${question.question}</p>
-                ${question.hint ? `<div class="hint">💡 <em>${question.hint}</em></div>` : ''}
+                <div class="question-text">${questionHTML}</div>
+                ${question.hint ? `<div class="hint" style="display: none;">💡 ${hintHTML}</div>` : ''}
                 <div class="answer-section">
                     <textarea id="current-answer" placeholder="Type your answer here..." rows="4"></textarea>
                     <div class="answer-actions">
-                        <button class="btn-secondary" onclick="showHint()">Show Hint</button>
+                        ${question.hint ? `<button class="btn-secondary" onclick="showHint()">Show Hint</button>` : ''}
                         <button class="btn-primary" onclick="checkAnswer()">Check Answer</button>
                     </div>
                 </div>
@@ -440,8 +508,20 @@ function showHint() {
     const question = currentReview.questions[currentReview.currentIndex];
     if (question.hint) {
         const hintDiv = document.querySelector('.hint');
-        if (hintDiv) {
-            hintDiv.style.display = hintDiv.style.display === 'none' ? 'block' : 'none';
+        const hintButton = document.querySelector('.answer-actions .btn-secondary');
+
+        if (hintDiv && hintButton) {
+            const isHidden = hintDiv.style.display === 'none';
+
+            if (isHidden) {
+                // Show hint
+                hintDiv.style.display = 'block';
+                hintButton.textContent = 'Hide Hint';
+            } else {
+                // Hide hint
+                hintDiv.style.display = 'none';
+                hintButton.textContent = 'Show Hint';
+            }
         }
     }
 }
@@ -453,8 +533,139 @@ function checkAnswer() {
         return;
     }
 
-    // For now, just show encouragement - could add LLM answer evaluation later
-    showStatus('Great job! Keep practicing with the next question.', 'success');
+    const currentQuestion = currentReview.questions[currentReview.currentIndex];
+
+    // Show loading state
+    const checkBtn = document.querySelector('.answer-actions .btn-primary');
+    const originalText = checkBtn.textContent;
+    checkBtn.textContent = 'Grading...';
+    checkBtn.disabled = true;
+
+    showStatus('Evaluating your answer...', 'info');
+
+    // Submit answer for grading
+    fetch('/api/grade-answer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            question: currentQuestion.question,
+            question_type: currentQuestion.type,
+            student_answer: answer,
+            hint: currentQuestion.hint || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        checkBtn.textContent = originalText;
+        checkBtn.disabled = false;
+
+        if (data.status === 'success') {
+            displayGradingResults(data.grading);
+            hideStatus();
+        } else {
+            showStatus('Error grading answer: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+
+        // Reset button state
+        checkBtn.textContent = originalText;
+        checkBtn.disabled = false;
+
+        showStatus('Error submitting answer for grading.', 'error');
+    });
+}
+
+function displayGradingResults(grading) {
+    // Create grading results display
+    const gradingHTML = `
+        <div class="grading-results">
+            <div class="score-display">
+                <div class="score-circle">
+                    <span class="score-percentage">${grading.score_percentage}%</span>
+                    <span class="score-category">${grading.score_category}</span>
+                </div>
+            </div>
+
+            <div class="feedback-sections">
+                <div class="feedback-section strengths">
+                    <h4>✅ What you did well:</h4>
+                    <p>${grading.feedback.strengths}</p>
+                </div>
+
+                ${grading.feedback.areas_for_improvement ? `
+                <div class="feedback-section improvements">
+                    <h4>💡 Areas to improve:</h4>
+                    <p>${grading.feedback.areas_for_improvement}</p>
+                </div>
+                ` : ''}
+
+                ${grading.feedback.suggestions ? `
+                <div class="feedback-section suggestions">
+                    <h4>📚 Study suggestions:</h4>
+                    <p>${grading.feedback.suggestions}</p>
+                </div>
+                ` : ''}
+
+                <div class="feedback-section encouragement">
+                    <h4>🌟 Encouragement:</h4>
+                    <p>${grading.feedback.encouragement}</p>
+                </div>
+            </div>
+
+            <div class="overall-assessment">
+                <strong>Overall: ${grading.overall_assessment}</strong>
+            </div>
+
+            <div class="grading-actions">
+                <button class="btn-secondary" onclick="hideGradingResults()">Continue</button>
+                <button class="btn-primary" onclick="nextQuestion()">Next Question</button>
+            </div>
+        </div>
+    `;
+
+    // Insert grading results after the answer section
+    const answerSection = document.querySelector('.answer-section');
+
+    // Remove any existing grading results
+    const existingResults = document.querySelector('.grading-results');
+    if (existingResults) {
+        existingResults.remove();
+    }
+
+    answerSection.insertAdjacentHTML('afterend', gradingHTML);
+
+    // Scroll to results
+    document.querySelector('.grading-results').scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+    });
+}
+
+function hideGradingResults() {
+    const gradingResults = document.querySelector('.grading-results');
+    if (gradingResults) {
+        gradingResults.remove();
+    }
+}
+
+function nextQuestion() {
+    hideGradingResults();
+
+    // Move to next question if available
+    if (currentReview.currentIndex < currentReview.questions.length - 1) {
+        currentReview.currentIndex++;
+        displayCurrentQuestion();
+    } else {
+        // End of questions
+        if (confirm('You\'ve completed all questions! Would you like to end the review session?')) {
+            endReviewSession();
+        }
+    }
 }
 
 function endReviewSession() {
@@ -479,6 +690,124 @@ function endReviewSession() {
         showStatus('Review session completed! Great job practicing.', 'success');
         setTimeout(hideStatus, 3000);
     }
+}
+
+// Analysis status checking
+function checkAnalysisStatus() {
+    fetch('/api/analysis-status')
+    .then(response => response.json())
+    .then(data => {
+        const analysisMessage = document.getElementById('analysis-message');
+        const analysisStatus = document.getElementById('analysis-status');
+        const analyzeBtn = document.getElementById('analyze-confusion');
+
+        if (data.success) {
+            if (data.needs_analysis) {
+                // Has unanalyzed sessions
+                analysisMessage.innerHTML = `
+                    📊 Found ${data.unanalyzed_count} unanalyzed conversation sessions out of ${data.total_sessions} total.<br>
+                    Click below to analyze them for review questions.
+                `;
+                analysisStatus.className = 'analysis-status warning';
+                analyzeBtn.disabled = false;
+                analyzeBtn.style.display = 'block';
+            } else if (data.total_conversations > 0) {
+                // All analyzed
+                analysisMessage.innerHTML = `
+                    ✅ All ${data.analyzed_sessions} conversation sessions are analyzed and ready for review!
+                `;
+                analysisStatus.className = 'analysis-status success';
+                analyzeBtn.disabled = true;
+                analyzeBtn.style.display = 'none';
+            } else {
+                // No conversations yet
+                analysisMessage.innerHTML = `
+                    💬 No conversations found yet. Start chatting to generate review content!
+                `;
+                analysisStatus.className = 'analysis-status';
+                analyzeBtn.disabled = true;
+                analyzeBtn.style.display = 'none';
+            }
+        } else {
+            analysisMessage.textContent = 'Error checking analysis status.';
+            analysisStatus.className = 'analysis-status warning';
+        }
+    })
+    .catch(error => {
+        console.error('Error checking analysis status:', error);
+        const analysisMessage = document.getElementById('analysis-message');
+        analysisMessage.textContent = 'Error checking analysis status.';
+    });
+}
+
+// Analysis functionality
+function handleAnalysisRequest() {
+    const analyzeBtn = document.getElementById('analyze-confusion');
+    const analyzeText = document.getElementById('analyze-text');
+    const analyzeLoading = document.getElementById('analyze-loading');
+    const analysisResults = document.getElementById('analysis-results');
+
+    // Show loading state
+    analyzeText.style.display = 'none';
+    analyzeLoading.style.display = 'inline';
+    analyzeBtn.disabled = true;
+    analysisResults.style.display = 'none';
+
+    showStatus('Analyzing your past conversations for confusion points...', 'info');
+
+    fetch('/admin/run-analysis')
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        analyzeText.style.display = 'inline';
+        analyzeLoading.style.display = 'none';
+
+        if (data.success) {
+            showStatus('Analysis complete! New confusion points have been processed.', 'success');
+
+            // Show results
+            analysisResults.innerHTML = `
+                <div class="success-message">
+                    ✅ Successfully analyzed your past conversations!<br>
+                    🔄 Refreshing analysis status and course options...
+                </div>
+            `;
+            analysisResults.style.display = 'block';
+
+            // Refresh analysis status and course list
+            setTimeout(() => {
+                checkAnalysisStatus();
+                loadCourses();
+                hideStatus();
+                analysisResults.style.display = 'none';
+            }, 2000);
+        } else {
+            analyzeBtn.disabled = false;
+            showStatus('Analysis failed: ' + data.message, 'error');
+            analysisResults.innerHTML = `
+                <div class="error-message">
+                    ❌ Analysis failed: ${data.message}
+                </div>
+            `;
+            analysisResults.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+
+        // Reset button state
+        analyzeText.style.display = 'inline';
+        analyzeLoading.style.display = 'none';
+        analyzeBtn.disabled = false;
+
+        showStatus('Error running analysis.', 'error');
+        analysisResults.innerHTML = `
+            <div class="error-message">
+                ❌ Error running analysis. Please try again.
+            </div>
+        `;
+        analysisResults.style.display = 'block';
+    });
 }
 
 // Utility functions

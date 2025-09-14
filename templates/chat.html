@@ -4,7 +4,15 @@
 
 {% block content %}
 <div class="container">
-    <h2>Chat with AI Assistant</h2>
+    <div class="chat-header">
+        <h2>Chat with AI Assistant</h2>
+        <div class="session-controls">
+            <span id="current-session-display" class="session-info">Session: Loading...</span>
+            <button id="new-session-btn" class="btn-secondary new-session-btn">
+                🔄 New Session
+            </button>
+        </div>
+    </div>
 
     <div id="chat-container">
         <div id="chat-messages" class="chat-messages"></div>

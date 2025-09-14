@@ -15,7 +15,7 @@ def chat_with_claude(user_message: str) -> str:
     try:
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=4096,
             messages=[
                 {
                     "role": "user",
@@ -65,7 +65,7 @@ def analyze_session_confusion(session_conversations: List[Dict], courses: List[D
 
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=500,
+            max_tokens=2048,
             messages=[
                 {
                     "role": "user",
@@ -137,7 +137,7 @@ def parse_review_request(natural_language: str, courses: List[Dict]) -> Dict:
 
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=300,
+            max_tokens=1024,
             messages=[
                 {
                     "role": "user",
@@ -190,7 +190,7 @@ def improve_course_structure_extraction(syllabus_text: str) -> List[Dict]:
 
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=2048,
             messages=[
                 {
                     "role": "user",
@@ -263,7 +263,7 @@ def generate_review_content(confusion_sessions: List[Dict]) -> Dict:
 
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=1000,
+            max_tokens=4096,
             messages=[
                 {
                     "role": "user",
@@ -299,6 +299,84 @@ def generate_review_content(confusion_sessions: List[Dict]) -> Dict:
                     "hint": "Check back when the system is available."
                 }
             ]
+        }
+
+def grade_student_answer(question: str, question_type: str, student_answer: str, hint: str = None) -> Dict:
+    """Grade a student's answer to a review question using AI evaluation
+
+    Args:
+        question: The review question that was asked
+        question_type: Type of question (e.g., "conceptual", "coding", etc.)
+        student_answer: The student's response
+        hint: Optional hint that was provided with the question
+
+    Returns:
+        Dict with grading results including score, feedback, and suggestions
+    """
+    try:
+        prompt = format_prompt(
+            "answer_grading",
+            question=question,
+            question_type=question_type,
+            student_answer=student_answer,
+            hint=hint if hint else "No hint provided"
+        )
+
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=2048,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        response_text = response.content[0].text.strip()
+
+        # Clean up the response to extract just the JSON
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "{" in response_text:
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+            response_text = response_text[json_start:json_end]
+
+        grading_result = json.loads(response_text)
+
+        # Validate required fields
+        required_fields = ['score_percentage', 'score_category', 'feedback', 'overall_assessment']
+        for field in required_fields:
+            if field not in grading_result:
+                raise ValueError(f"Missing required field: {field}")
+
+        # Validate feedback structure
+        if not isinstance(grading_result['feedback'], dict):
+            raise ValueError("Feedback must be an object")
+
+        feedback_fields = ['strengths', 'areas_for_improvement', 'suggestions', 'encouragement']
+        for field in feedback_fields:
+            if field not in grading_result['feedback']:
+                grading_result['feedback'][field] = ""
+
+        return grading_result
+
+    except Exception as e:
+        print(f"Error in grade_student_answer: {str(e)}")
+        # Return a fallback grading response
+        return {
+            "score_percentage": 75,
+            "score_category": "Good",
+            "feedback": {
+                "strengths": "Thank you for providing an answer.",
+                "areas_for_improvement": "We encountered an issue evaluating your response.",
+                "suggestions": "Please try submitting your answer again.",
+                "encouragement": "Keep up the good work! Practice makes perfect."
+            },
+            "overall_assessment": "Answer submitted successfully"
         }
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ Please respond in this JSON format:
 }}
 
 Look for signs of confusion like:
+- Asking for a definition ("What is ...", "How to ...")
 - Asking for clarification
 - Expressing uncertainty ("I don't understand", "I'm confused")
 - Asking the same question multiple ways

@@ -177,6 +177,26 @@ def check_session_needs_analysis(session_id: str) -> bool:
     conn.close()
     return existing is None
 
+def get_unanalyzed_sessions() -> List[str]:
+    """Get all session IDs that have conversations but no confusion analysis"""
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    SELECT DISTINCT c.session_id
+    FROM conversations c
+    LEFT JOIN confusion_points cp ON c.session_id = cp.session_id
+    WHERE cp.session_id IS NULL
+    GROUP BY c.session_id
+    ORDER BY MAX(c.created_at) DESC
+    ''')
+
+    rows = cursor.fetchall()
+    sessions = [row[0] for row in rows]
+
+    conn.close()
+    return sessions
+
 # Confusion analysis functions
 def save_confusion_analysis(session_id: str, course_id: int, unit: str, topics: List[str], confused_conversation_ids: List[int]):
     """Save confusion analysis results"""
@@ -287,35 +307,55 @@ def cleanup_old_data(days_old: int = 30):
     conn.commit()
     conn.close()
 
+def reset_database():
+    """Reset database to clean state - remove all data but keep structure"""
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+
+    # Clear all data from tables in reverse dependency order
+    cursor.execute('DELETE FROM confusion_points')
+    cursor.execute('DELETE FROM conversations')
+    cursor.execute('DELETE FROM courses')
+
+    # Reset auto-increment counters
+    cursor.execute('DELETE FROM sqlite_sequence WHERE name="confusion_points"')
+    cursor.execute('DELETE FROM sqlite_sequence WHERE name="conversations"')
+    cursor.execute('DELETE FROM sqlite_sequence WHERE name="courses"')
+
+    conn.commit()
+    conn.close()
+    print("Database reset complete - all data cleared")
+
+def get_database_stats():
+    """Get current database statistics"""
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+
+    stats = {}
+
+    cursor.execute('SELECT COUNT(*) FROM courses')
+    stats['courses'] = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(*) FROM conversations')
+    stats['conversations'] = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(DISTINCT session_id) FROM conversations')
+    stats['sessions'] = cursor.fetchone()[0]
+
+    cursor.execute('SELECT COUNT(*) FROM confusion_points')
+    stats['analyzed_sessions'] = cursor.fetchone()[0]
+
+    conn.close()
+    return stats
+
 if __name__ == '__main__':
-    # Initialize database when run directly
-    init_database()
+    # Reset database to clean state
+    print("Resetting database...")
+    # reset_database()
 
-    # Test with sample data
-    print("Testing database functions...")
+    # # Initialize fresh database
+    # init_database()
 
-    # Test course creation
-    sample_units = [
-        {"name": "Introduction", "topics": ["variables", "data types", "basic syntax"]},
-        {"name": "Control Flow", "topics": ["if statements", "loops", "functions"]},
-        {"name": "Data Structures", "topics": ["arrays", "lists", "dictionaries"]}
-    ]
-
-    course_id = save_course("CS 101 - Intro to Programming", sample_units)
-    print(f"Created course with ID: {course_id}")
-
-    # Test conversation creation
-    session_id = "test_session_1"
-    conv_id = save_conversation(session_id, "What is a variable?", "A variable is a container for storing data values.")
-    print(f"Created conversation with ID: {conv_id}")
-
-    # Test confusion analysis
-    save_confusion_analysis(session_id, course_id, "Introduction", ["variables"], [conv_id])
-    print("Saved confusion analysis")
-
-    # Test retrieval
-    courses = get_courses()
-    print(f"Found {len(courses)} courses")
-
-    sessions = get_confusion_sessions(course_id=course_id)
-    print(f"Found {len(sessions)} confusion sessions for course {course_id}")
+    # # Show stats
+    # stats = get_database_stats()
+    # print(f"Database reset complete. Current stats: {stats}")

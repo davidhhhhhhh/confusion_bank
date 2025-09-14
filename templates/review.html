@@ -7,48 +7,68 @@
     <h2>Review Mode</h2>
     <p>Get personalized review questions based on your actual confusion points from conversations.</p>
 
-    <!-- Natural Language Request -->
-    <div id="natural-request-section" class="review-section">
-        <h3>🎯 Quick Review Request</h3>
-        <p>Tell us what you want to review in natural language:</p>
-
-        <div class="form-group">
-            <input type="text" id="natural-request" placeholder="e.g., 'I want to review neural networks' or 'help me with data mining concepts'" class="natural-input">
-            <button id="generate-natural-review" class="btn-primary">Generate Review</button>
+    <!-- Analysis Section - Top Priority -->
+    <div id="analysis-section" class="review-section analysis-priority">
+        <h3>🔍 Analyze Past Conversations</h3>
+        <div id="analysis-status" class="analysis-status">
+            <p id="analysis-message">Checking if all your conversations have been analyzed...</p>
         </div>
 
-        <div class="examples">
-            <small>
-                <strong>Examples:</strong>
-                "I want to review deep learning", "Help me with neural networks", "Review data mining algorithms"
-            </small>
-        </div>
+        <button id="analyze-confusion" class="btn-secondary">
+            <span id="analyze-text">Analyze My Confusion Points</span>
+            <span id="analyze-loading" style="display: none;">Analyzing...</span>
+        </button>
+
+        <div id="analysis-results" class="analysis-feedback" style="display: none;"></div>
     </div>
 
-    <div class="divider">
-        <span>OR</span>
+    <div class="review-divider">
+        <span>Choose your review method below</span>
     </div>
 
-    <!-- Traditional Course/Topic Selection -->
-    <div id="traditional-selection" class="review-section">
-        <h3>📚 Browse by Course & Topic</h3>
-        <p>Select specific courses and topics that have confusion points:</p>
+    <!-- Review Options Side by Side -->
+    <div class="review-options-container">
+        <!-- Natural Language Request -->
+        <div id="natural-request-section" class="review-option">
+            <h3>🎯 Quick Review Request</h3>
+            <p>Tell us what you want to review in natural language:</p>
 
-        <div class="form-group">
-            <label for="course-select">Select Course:</label>
-            <select id="course-select" name="course-select">
-                <option value="">Loading courses...</option>
-            </select>
+            <div class="form-group">
+                <input type="text" id="natural-request" placeholder="e.g., 'I want to review neural networks' or 'help me with data mining concepts'" class="natural-input">
+                <button id="generate-natural-review" class="btn-primary">Generate Review</button>
+            </div>
+
+            <div class="examples">
+                <small>
+                    <strong>Examples:</strong><br>
+                    "I want to review deep learning"<br>
+                    "Help me with neural networks"<br>
+                    "Review data mining algorithms"
+                </small>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="topic-select">Select Topic:</label>
-            <select id="topic-select" name="topic-select" disabled>
-                <option value="">Select a course first</option>
-            </select>
-        </div>
+        <!-- Traditional Course/Topic Selection -->
+        <div id="traditional-selection" class="review-option">
+            <h3>📚 Browse by Course & Topic</h3>
+            <p>Select specific courses and topics that have confusion points:</p>
 
-        <button id="start-review" class="btn-primary" disabled>Start Review</button>
+            <div class="form-group">
+                <label for="course-select">Select Course:</label>
+                <select id="course-select" name="course-select">
+                    <option value="">Loading courses...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topic-select">Select Topic:</label>
+                <select id="topic-select" name="topic-select" disabled>
+                    <option value="">Select a course first</option>
+                </select>
+            </div>
+
+            <button id="start-review" class="btn-primary" disabled>Start Review</button>
+        </div>
     </div>
 
     <!-- Review Content Display -->

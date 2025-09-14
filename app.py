@@ -3,9 +3,9 @@ from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 from pdf_processor import process_syllabus_upload
-from llm_service import chat_with_claude
+from llm_service import chat_with_claude, grade_student_answer
 from database import save_conversation, get_courses
-from classifier import update_session_activity, force_analyze_session, run_periodic_analysis
+from classifier import force_analyze_session, run_periodic_analysis
 from review_generator import generate_review_by_criteria, generate_review_from_request, get_available_review_topics
 
 load_dotenv()
@@ -95,9 +95,6 @@ def api_chat():
 
         # Save conversation to database
         conversation_id = save_conversation(session_id, user_message, ai_response)
-
-        # Update session activity for classification tracking
-        update_session_activity(session_id)
 
         return jsonify({
             'status': 'success',
@@ -273,6 +270,77 @@ def admin_run_analysis():
         return jsonify({
             'success': False,
             'message': f'Error: {str(e)}'
+        })
+
+@app.route('/api/analysis-status')
+def api_analysis_status():
+    """Check if all conversations have been analyzed"""
+    try:
+        from database import get_unanalyzed_sessions, get_database_stats
+
+        # Get stats
+        stats = get_database_stats()
+        unanalyzed_sessions = get_unanalyzed_sessions()
+
+        needs_analysis = len(unanalyzed_sessions) > 0
+
+        return jsonify({
+            'success': True,
+            'needs_analysis': needs_analysis,
+            'unanalyzed_count': len(unanalyzed_sessions),
+            'total_sessions': stats['sessions'],
+            'analyzed_sessions': stats['analyzed_sessions'],
+            'total_conversations': stats['conversations']
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error checking analysis status: {str(e)}'
+        })
+
+@app.route('/api/grade-answer', methods=['POST'])
+def api_grade_answer():
+    """Grade a student's answer to a review question"""
+    try:
+        data = request.get_json()
+
+        # Extract required data
+        question = data.get('question', '').strip()
+        question_type = data.get('question_type', 'general')
+        student_answer = data.get('student_answer', '').strip()
+        hint = data.get('hint', '')
+
+        # Validate required fields
+        if not question:
+            return jsonify({
+                'status': 'error',
+                'message': 'Question is required'
+            })
+
+        if not student_answer:
+            return jsonify({
+                'status': 'error',
+                'message': 'Student answer is required'
+            })
+
+        # Grade the answer using LLM
+        grading_result = grade_student_answer(
+            question=question,
+            question_type=question_type,
+            student_answer=student_answer,
+            hint=hint
+        )
+
+        return jsonify({
+            'status': 'success',
+            'grading': grading_result
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error grading answer: {str(e)}'
         })
 
 if __name__ == '__main__':

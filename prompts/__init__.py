@@ -23,5 +23,6 @@ AVAILABLE_PROMPTS = [
     "session_analysis",
     "review_request_parsing",
     "course_structure_extraction",
-    "review_generation"
+    "review_generation",
+    "answer_grading"
 ]

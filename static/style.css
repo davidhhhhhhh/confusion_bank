@@ -1,5 +1,125 @@
 /* Basic styling for Confusion Bank */
 
+/* Markdown content styling */
+.message.ai h1,
+.message.ai h2,
+.message.ai h3,
+.message.ai h4,
+.message.ai h5,
+.message.ai h6 {
+    margin: 0.5em 0 0.3em 0;
+    color: #2c3e50;
+}
+
+.message.ai h1 { font-size: 1.4em; }
+.message.ai h2 { font-size: 1.3em; }
+.message.ai h3 { font-size: 1.2em; }
+.message.ai h4 { font-size: 1.1em; }
+
+.message.ai p {
+    margin: 0.5em 0;
+    line-height: 1.6;
+}
+
+.message.ai ul,
+.message.ai ol {
+    margin: 0.5em 0 0.5em 1.5em;
+    padding-left: 0;
+}
+
+.message.ai li {
+    margin: 0.2em 0;
+}
+
+.message.ai code {
+    background-color: #f1f3f4;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+}
+
+.message.ai pre {
+    background-color: #f8f9fa;
+    padding: 1em;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+    overflow-x: auto;
+    margin: 0.5em 0;
+}
+
+.message.ai pre code {
+    background: none;
+    padding: 0;
+}
+
+.message.ai blockquote {
+    border-left: 4px solid #ddd;
+    margin: 0.5em 0;
+    padding: 0 1em;
+    color: #666;
+    font-style: italic;
+}
+
+.message.ai strong {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.message.ai em {
+    font-style: italic;
+    color: #555;
+}
+
+/* Review content markdown styling */
+.question-text h1,
+.question-text h2,
+.question-text h3,
+.question-text h4,
+.question-text h5,
+.question-text h6 {
+    margin: 0.3em 0 0.2em 0;
+    color: #2c3e50;
+}
+
+.question-text p {
+    margin: 0.3em 0;
+}
+
+.question-text ul,
+.question-text ol {
+    margin: 0.3em 0 0.3em 1em;
+}
+
+.question-text code {
+    background-color: #f1f3f4;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+}
+
+.question-text pre {
+    background-color: #f8f9fa;
+    padding: 0.8em;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.3em 0;
+}
+
+.hint p {
+    margin: 0.2em 0;
+}
+
+#review-summary p {
+    margin: 0.3em 0;
+}
+
+#review-summary ul,
+#review-summary ol {
+    margin: 0.3em 0 0.3em 1em;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -350,6 +470,223 @@ textarea:focus {
     color: #495057;
 }
 
+/* New Review Page Layout */
+.analysis-priority {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.analysis-status {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 4px;
+    border-left: 4px solid #17a2b8;
+}
+
+.analysis-status.warning {
+    border-left-color: #ffc107;
+    background: #fff8e1;
+}
+
+.analysis-status.success {
+    border-left-color: #28a745;
+    background: #f1f8e9;
+}
+
+.review-divider {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.review-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.review-divider span {
+    background: #f8f9fa;
+    padding: 0 1rem;
+    color: #6c757d;
+    font-weight: 500;
+    position: relative;
+}
+
+.review-options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.review-option {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.review-option h3 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.review-option p {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+}
+
+/* Chat Page Session Controls */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.chat-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.session-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.session-info {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.new-session-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+/* Grading Results Styling */
+.grading-results {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.score-display {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.score-circle {
+    display: inline-block;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 50%;
+    min-width: 120px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.score-percentage {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.score-category {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+}
+
+.feedback-sections {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.feedback-section {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #17a2b8;
+}
+
+.feedback-section.strengths {
+    border-left-color: #28a745;
+}
+
+.feedback-section.improvements {
+    border-left-color: #ffc107;
+}
+
+.feedback-section.suggestions {
+    border-left-color: #17a2b8;
+}
+
+.feedback-section.encouragement {
+    border-left-color: #6f42c1;
+}
+
+.feedback-section h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.feedback-section p {
+    margin: 0;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.overall-assessment {
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.grading-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.grading-actions button {
+    min-width: 120px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .container {
@@ -368,6 +705,54 @@ textarea:focus {
 
     .chat-input-group button {
         margin-top: 0.5rem;
+    }
+
+    .review-options-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .review-option {
+        padding: 1rem;
+    }
+
+    .chat-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .session-controls {
+        justify-content: space-between;
+    }
+
+    .session-info {
+        flex: 1;
+        text-align: center;
+    }
+
+    .grading-results {
+        padding: 1rem;
+    }
+
+    .score-circle {
+        min-width: 100px;
+        min-height: 100px;
+        padding: 1rem;
+    }
+
+    .score-percentage {
+        font-size: 1.5rem;
+    }
+
+    .grading-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .grading-actions button {
+        min-width: auto;
+        width: 100%;
     }
 
     #review-controls button {
