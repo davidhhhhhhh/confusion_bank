@@ -110,8 +110,8 @@
 - [x] Fix review page UI - increase spacing for generate button and add auto-scroll to loading message
 - [x] Create README for Confusion Bank project
 - [ ] Incorporate MCP in review generation and answer grading process with visualizations (optional)
-- [ ] Run comprehensive testing of all features and fix any critical bugs
-- [ ] Create demo script and final rehearsal
+- [x] Run comprehensive testing of all features and fix any critical bugs
+- [x] Create demo script and final rehearsal
 
 ---
 
